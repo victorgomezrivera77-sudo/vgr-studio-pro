@@ -1,4 +1,3 @@
-gspread
-google-auth
-google-generativeai
+streamlit
+watchdog
 Pillow
