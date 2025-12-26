@@ -1,5 +1,4 @@
 import streamlit as st
-from PIL import Image
 import time
 
 # --- 1. CONFIGURACIÓN VISUAL OASIS ---
@@ -13,91 +12,80 @@ st.markdown("""
         background-color: #FF4B2B; color: white; font-weight: bold;
         border-radius: 10px; width: 100%; border: none; height: 3.5em;
     }
-    input, textarea { background-color: #1A1A1A !important; color: white !important; border: 1px solid #FF4B2B !important; }
+    .stMetric { background-color: #1A1A1A; border: 1px solid #FF4B2B; border-radius: 10px; padding: 10px; }
+    .disclaimer { font-size: 12px; color: #888888; font-style: italic; border-top: 1px solid #333; padding-top: 10px; margin-top: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. PERSISTENCIA: INICIALIZAR MEMORIA DEL CASTILLO ---
-if 'analisis_listo' not in st.session_state:
-    st.session_state.analisis_listo = False
-    st.session_state.precio = 0
-    st.session_state.sesiones = 0
-    st.session_state.detalle_texto = ""
+# --- 2. PERSISTENCIA DE DATOS ---
+if 'memoria' not in st.session_state:
+    st.session_state.memoria = {"listo": False, "precio": 0, "sesiones": 0, "texto": "", "horas": 0, "materiales": 0}
 
-# --- 3. EL ALGORITMO COMANDANTE (VERSION LETTERING RÁPIDO) ---
-def algoritmo_oasis_elite(descripcion, zona, tamaño):
+# --- 3. ALGORITMO COMANDANTE V3 ---
+def algoritmo_oasis_v3(descripcion, zona, tamaño):
     desc_low = descripcion.lower()
-    es_lettering = any(word in desc_low for word in ["lettering", "letras", "frase", "nombre"])
+    es_lettering = any(word in desc_low for word in ["lettering", "letras", "frase"])
     
-    # Ajuste de Tarifa Base
-    if tamaño <= 3: tarifa_base = 85
-    elif tamaño <= 10: tarifa_base = 110
-    else: tarifa_base = 150
+    tarifa = 85 if tamaño <= 3 else (110 if tamaño <= 10 else 150)
+    multi = 0.6 if es_lettering else 1.0
+    if any(word in desc_low for word in ["negro", "saturado", "pantera", "solido"]): multi += 0.8
+    if any(word in desc_low for word in ["detalle", "fino", "flores", "micro"]): multi += 0.4
 
-    # Multiplicadores de Complejidad
-    multiplicador_tecnico = 1.0
-    if es_lettering:
-        multiplicador_tecnico = 0.6  # EL CABALLO RÁPIDO: El lettering reduce costo por velocidad de ejecución
-    elif any(word in desc_low for word in ["negro solido", "blackwork", "saturado"]):
-        multiplicador_tecnico += 0.8 
-    
-    if any(word in desc_low for word in ["detalle", "micro", "fino", "filigrana"]):
-        multiplicador_tecnico += 0.4
+    zonas = {'costilla': 1.8, 'espalda': 1.6, 'pecho': 1.5, 'cuello': 1.7, 'muñeca': 1.3}
+    m_zona = zonas.get(zona.lower(), 1.0)
 
-    # Multiplicador Zona
-    zonas_guerra = {'espalda': 1.6, 'pecho': 1.5, 'costillas': 1.8, 'cuello': 1.7, 'manos': 1.6, 'estomago': 1.9}
-    multi_zona = zonas_guerra.get(zona.lower(), 1.0)
-
-    inversion = (tamaño * tarifa_base) * (multiplicador_tecnico + (multi_zona - 1))
-    
-    # Construcción del Veredicto Extenso
-    texto = f"Análisis técnico para proyecto de {tamaño} pulg. en {zona}. "
-    if es_lettering:
-        texto += "He detectado que buscas Lettering. Aunque la pieza es de gran escala, Victor domina este estilo con alta velocidad técnica, lo que permite optimizar tu inversión sin sacrificar la fluidez caligráfica. Es una pieza de alto impacto visual y ejecución eficiente."
-    else:
-        texto += "La densidad de pigmento y la zona elegida requieren un asedio técnico prolongado para asegurar la integridad de la obra a largo plazo."
-
+    inversion = (tamaño * tarifa) * (multi + (m_zona - 1))
+    horas = round((tamaño * (0.6 if es_lettering else 1.2)) * m_zona, 1)
+    materiales = round(inversion * 0.15, 2)
     num_sesiones = int(inversion // 1200) + 1
-    return round(inversion, 2), num_sesiones, texto
+    
+    return round(inversion, 2), num_sesiones, horas, materiales
 
 # --- 4. INTERFAZ ---
 st.title("🏛️ PROYECTO OASIS")
 
-tab1, tab2 = st.tabs(["🔍 ANALISTA ELITE", "📅 AGENDA CASTILLO"])
+# SECCIÓN DE AYUDA / GUÍA
+with st.expander("❓ ¿Cómo usar el Analista Oasis? (Guía de Usuario)"):
+    st.write("""
+    1. **Experimenta:** Siéntete libre de probar diferentes ideas, tamaños y zonas. Esta herramienta es para que explores tu presupuesto sin compromiso.
+    2. **Descripción:** Sé específico. Menciona si quieres mucho negro o líneas finas.
+    3. **Imagen (Opcional):** Si tienes una referencia, súbela para ayudar al análisis, si no, la IA usará tu descripción.
+    4. **Reserva:** Una vez tengas tu idea final, puedes proceder a reservar tu lugar en el Castillo.
+    """)
 
-with tab1:
-    st.subheader("🕵️ Analista de Complejidad")
-    user_idea = st.text_area("Describe tu visión:", placeholder="Ej: Lettering chicano grande en el pecho...")
-    col1, col2 = st.columns(2)
-    with col1: user_zone = st.text_input("¿Zona?")
-    with col2: user_size = st.number_input("Pulgadas", min_value=1, value=3)
+st.subheader("🕵️ Analista de Autor")
 
-    if st.button("EJECUTAR ANÁLISIS"):
-        if user_idea and user_zone:
-            p, s, t = algoritmo_oasis_elite(user_idea, user_zone, user_size)
-            # Guardar en la memoria del búnker
-            st.session_state.precio = p
-            st.session_state.sesiones = s
-            st.session_state.detalle_texto = t
-            st.session_state.analisis_listo = True
-            
-            with st.spinner("El Comandante está calculando..."):
-                time.sleep(1.5)
-        else:
-            st.warning("Faltan datos para el Comandante.")
+# Imagen Opcional
+foto = st.file_uploader("Sube tu referencia (Opcional)", type=["jpg", "png", "jpeg"])
+if foto:
+    st.image(foto, caption="Referencia cargada correctamente", width=200)
 
-    # Mostrar resultados persistentes
-    if st.session_state.analisis_listo:
-        st.markdown(f"""
-        <div style="background-color: #1A1A1A; padding: 20px; border-radius: 10px; border: 1px solid #FF4B2B;">
-            <h2 style="color: #FF4B2B !important;">Inversión: ${st.session_state.precio} USD</h2>
-            <p style="font-size: 14px; color: #CCCCCC !important;">{st.session_state.detalle_texto}</p>
-            <hr>
-            <p><b>Sesiones estimadas:</b> {st.session_state.sesiones}</p>
-        </div>
-        """, unsafe_allow_html=True)
+user_idea = st.text_area("Describe tu visión:", placeholder="Ej: Una rosa neotradicional con sombras profundas...")
+col1, col2 = st.columns(2)
+with col1: user_zone = st.text_input("¿Zona del cuerpo?")
+with col2: user_size = st.number_input("Pulgadas aprox.", min_value=1, value=5)
 
-with tab2:
-    st.subheader("📅 Reserva de Plaza")
-    st.write("Tu progreso está guardado. Puedes seleccionar tu fecha ahora.")
-    st.date_input("Fecha de asalto")
+if st.button("EJECUTAR ANÁLISIS TÉCNICO"):
+    if user_idea and user_zone:
+        p, s, h, m = algoritmo_oasis_v3(user_idea, user_zone, user_size)
+        st.session_state.memoria = {"listo": True, "precio": p, "sesiones": s, "horas": h, "materiales": m}
+        with st.spinner("Calculando logística de autor..."): time.sleep(1.2)
+    else:
+        st.warning("Comandante, indique al menos la idea y la zona.")
+
+if st.session_state.memoria["listo"]:
+    m = st.session_state.memoria
+    st.metric(label="Presupuesto Estimado", value=f"${m['precio']} USD")
+    
+    st.markdown(f"""
+    <div style="background-color: #1A1A1A; padding: 20px; border-radius: 10px; border: 1px solid #FF4B2B;">
+        <p style="color: #FF4B2B; font-weight: bold;">📊 LOGÍSTICA ESTIMADA:</p>
+        <p>⏳ <b>Tiempo en Piel:</b> {m['horas']} horas totales.</p>
+        <p>💉 <b>Insumos Premium:</b> ${m['materiales']} USD.</p>
+        <p>⚔️ <b>Sesiones:</b> {m['sesiones']} sesión(es).</p>
+    </div>
+    <p class="disclaimer">⚠️ NOTA PROFESIONAL: Este presupuesto es una herramienta informativa basada en parámetros técnicos. El precio final será corroborado y confirmado por Victor Gomez en persona durante la consulta o el día de la sesión, considerando la anatomía final y ajustes de diseño.</p>
+    """, unsafe_allow_html=True)
+
+    if st.button("CONFIRMAR IDEA Y RESERVAR"):
+        st.success("¡Excelente elección! Dirígete a la pestaña de Agenda para asegurar tu plaza.")
