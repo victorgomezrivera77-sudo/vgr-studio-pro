@@ -1,17 +1,20 @@
 import streamlit as st
 from datetime import date
 
-# Configuración de página con estética Oasis
-st.set_page_config(page_title="Oasis Tattoo Studio", layout="centered")
+# Configuración de página con estética Adrenaline
+st.set_page_config(page_title="Adrenaline Tattoo Studio", layout="centered")
 
 # --- 1. CARTEL DINÁMICO (MANUAL DEL CLIENTE) ---
-st.title("🌿 Bienvenidos a Oasis")
+# CAMBIO APLICADO AQUÍ: Jeringa y nombre "Adrenaline"
+st.title("💉 Bienvenidos a Adrenaline")
+
 with st.expander("📖 CÓMO USAR ESTA HERRAMIENTA (Actualizado)", expanded=True):
     st.write("""
-    1. **Sube tu idea:** Sube una foto de referencia (opcional) y cuéntanos tu visión.
-    2. **Define el tamaño:** Elige entre pulgadas o centímetros.
-    3. **Selección técnica:** Elige el estilo. Stephanie y nuestro algoritmo calcularán el tiempo y precio por ti.
-    4. **Reserva:** Selecciona tu fecha en el calendario y confirma.
+    1. **Visualiza:** Sube una foto de referencia (opcional) para que Stephanie y los artistas entiendan tu idea.
+    2. **Describe:** Escribe qué quieres tatuarte. Nuestro algoritmo analizará tu descripción para ajustar la precisión del presupuesto.
+    3. **Mide:** Introduce el tamaño en **pulgadas o centímetros**. El sistema hará la conversión automática.
+    4. **Estilo:** Selecciona uno de los estilos base. El sistema calculará las horas de trabajo y el precio final (incluyendo insumos) sin que tengas que adivinar.
+    5. **Elige tu fecha:** Usa el calendario para separar tu espacio.
     """)
 
 # --- 2. EL AVATAR: STEPHANIE ---
@@ -39,10 +42,11 @@ with col_medida:
         medida = st.number_input("Tamaño (Centímetros)", min_value=2, value=12)
         pulgadas_reales = medida / 2.54 # Convertimos a pulgadas para el algoritmo
 
-estilo = st.selectbox("Estilo técnico:", ["Lettering Sencillo", "Neotradicional", "Neotribal", "Blackwork", "Realismo"])
+# Lista de estilos base principales
+estilo = st.selectbox("Estilo técnico base:", ["Lettering Sencillo", "Neotradicional", "Neotribal", "Blackwork", "Realismo"])
 
 # --- 4. ALGORITMO DE CÁLCULO (EL MOTOR) ---
-# Definimos factores de tiempo por estilo (horas por pulgada cuadrada o lineal)
+# Definimos factores de tiempo por estilo (horas por pulgada cuadrada o lineal aprox)
 factores_estilo = {
     "Lettering Sencillo": 0.4,
     "Neotradicional": 1.2,
@@ -52,7 +56,10 @@ factores_estilo = {
 }
 
 factor = factores_estilo.get(estilo, 1.0)
+# Cálculo de horas basado en el tamaño y el estilo
 horas_estimadas = round(pulgadas_reales * factor, 1)
+
+# Variables de precio
 precio_insumos = 50 # Base fija de materiales
 precio_por_hora = 100 # Tu tarifa por hora
 precio_final = (horas_estimadas * precio_por_hora) + precio_insumos
@@ -64,104 +71,5 @@ fecha_cita = st.date_input("Selecciona el día de tu sesión", min_value=date.to
 # --- 6. SECCIÓN DE ARTISTAS (EDITABLE) ---
 st.divider()
 st.subheader("🎨 Nuestros Artistas")
-# Esta lista puede ser una base de datos más adelante
-artistas = ["Momo", "Steve", "Sonia", "Víctor"]
-st.write(f"En Oasis contamos con: **{', '.join(artistas)}**")
-
-# Recomendación del algoritmo
-st.success(f"✨ Basado en tu estilo ({estilo}), te recomendamos agendar con cualquiera de nuestros especialistas: {', '.join(artistas)}.")
-
-# --- 7. RESUMEN Y CONFIRMACIÓN ---
-if st.button("Confirmar Reserva y Calcular"):
-    st.markdown("---")
-    st.header("📋 Resumen de tu Reserva")
-    
-    col_res1, col_res2 = st.columns(2)
-    with col_res1:
-        st.write(f"**Descripción:** {descripcion}")
-        st.write(f"**Estilo:** {estilo}")
-        st.write(f"**Medida:** {medida} {unidad}")
-        st.write(f"**Fecha:** {fecha_cita}")
-    
-    with col_res2:
-        st.write(f"**Tiempo estimado:** {horas_estimadas} horas")
-        st.write(f"**Insumos:** ${precio_insumos}")
-        st.write(f"**Precio Total Estimado:** ${precio_final}")
-    
-    # LÓGICA DE ENVÍO (Simulación de correo)
-    # Aquí es donde el Oasis-writer@... entraría en juego para disparar el mail
-    datos_reserva = {
-        "cliente": "Usuario Oasis",
-        "descripcion": descripcion,
-        "precio": precio_final,
-        "fecha": fecha_cita,
-        "artista_rec": artistas
-    }
-    st.info("📧 Stephanie: ¡Gracias! He recibido tu información. Te contactaré pronto para confirmar los detalles finales.")
-    # st.write(f"DEBUG: Enviando correo a tu service account...") 
-import streamlit as st
-from datetime import date
-
-# --- CONFIGURACIÓN DE LA PÁGINA ---
-st.set_page_config(page_title="Viking Ink - Cotizador", page_icon="🏛️")
-
-# --- TÍTULO E INTERFAZ PRINCIPAL ---
-st.title("🏛️ COTIZADOR VIKING INK")
-
-with st.expander("❓ ¿Cómo usar esta herramienta?"):
-    st.write("""
-    1. Sube tu imagen de referencia.
-    2. Describe tu idea y selecciona el estilo técnico.
-    3. Indica el tamaño y las horas estimadas para ver tu presupuesto.
-    4. Selecciona una fecha disponible en el calendario.
-    """)
-
-st.markdown("### 🕵️ Analiza tu próximo tatuaje")
-
-# --- ENTRADAS DE USUARIO (Basadas en tu interfaz actual) ---
-uploaded_file = st.file_uploader("Sube una foto de referencia (Opcional)", type=["jpg", "png", "jpeg"])
-
-idea = st.text_area("¿Qué tienes en mente?", placeholder="Ej: Una pantera negra con flores en el brazo...")
-
-zona_cuerpo = st.text_input("¿En qué zona del cuerpo?")
-
-tamano = st.number_input("Tamaño aprox. (pulgadas)", min_value=1, value=5)
-
-# --- NUEVA SECCIÓN: ESTILO Y HORAS ---
-col1, col2 = st.columns(2)
-
-with col1:
-    estilo = st.selectbox(
-        "Estilo técnico:",
-        ["Lettering Sencillo", "Black & Grey / Líneas", "Realismo / Color / Neotradicional"]
-    )
-
-with col2:
-    horas = st.number_input("Horas estimadas", min_value=1, value=1)
-
-# --- NUEVA SECCIÓN: CALENDARIO ---
-st.markdown("### 📅 Reserva tu fecha")
-fecha_cita = st.date_input("Selecciona el día de tu sesión", min_value=date.today())
-
-# --- LÓGICA DE PRECIOS ---
-tarifas = {
-    "Lettering Sencillo": 60,
-    "Black & Grey / Líneas": 100,
-    "Realismo / Color / Neotradicional": 125
-}
-
-# --- BOTÓN Y RESULTADO ---
-if st.button("VER MI PRESUPUESTO"):
-    tarifa_aplicada = tarifas[estilo]
-    total = horas * tarifa_aplicada
-    
-    st.markdown("---")
-    st.success(f"### Presupuesto Estimado: ${total}")
-    st.write(f"**Detalles del arte:**")
-    st.write(f"* **Estilo:** {estilo} (${tarifa_aplicada}/hr)")
-    st.write(f"* **Tiempo:** {horas} horas")
-    st.write(f"* **Fecha tentativa:** {fecha_cita.strftime('%d/%m/%Y')}")
-    
-    # Recordatorio de Oasis sobre el valor de la obra
-    if total < 500:
-        st.info("Nota: Este presupuesto es para la sesión de tatuaje. Recuerda que proyectos de arte integral en canvas tienen una base distinta.")
+# Lista de artistas actuales
+artistas = ["Momo",
