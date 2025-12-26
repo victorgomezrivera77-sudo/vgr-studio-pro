@@ -1,70 +1,101 @@
 import streamlit as st
 from PIL import Image
 import time
-from datetime import date
 
-# --- CONFIGURACIÓN OASIS ---
-st.set_page_config(page_title="VGR Art Studio | Oasis", layout="centered")
+# --- 1. CONFIGURACIÓN VISUAL OASIS ---
+st.set_page_config(page_title="Oasis AI - Victor Gomez", layout="centered")
 
-# --- ESTILO DE LUJO ---
+# Estilos de color Naranja y Negro (Tu identidad visual)
 st.markdown("""
     <style>
-    .stApp { background-color: #000000; color: #F5F5DC; }
-    h1 { color: #FF4B00 !important; text-align: center; font-weight: 800; }
-    .card { background-color: #0a0a0a; padding: 25px; border-radius: 15px; border: 1px solid #222; margin-bottom: 20px; }
-    .ejemplo-box { background-color: #111; border-left: 4px solid #FF4B00; padding: 10px; margin: 10px 0; font-size: 0.9em; color: #bbb; }
-    .stButton>button { background: linear-gradient(45deg, #FF4B00, #FF7034); color: white; border-radius: 12px; width: 100%; height: 50px; font-weight: bold; }
+    .stApp { background-color: #000000; }
+    h1, h2, h3, p, span, label { color: #FFFFFF !important; }
+    .stButton>button { 
+        background-color: #FF4B2B; 
+        color: white; 
+        font-weight: bold;
+        border-radius: 10px;
+        width: 100%;
+        border: none;
+        height: 3em;
+    }
+    /* Estilo para los inputs */
+    input, textarea {
+        background-color: #1A1A1A !important;
+        color: white !important;
+        border: 1px solid #FF4B2B !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown("<h1>🏛️ OASIS ART STUDIO</h1>", unsafe_allow_html=True)
+st.title("🏛️ PROYECTO OASIS")
+st.write("Bienvenido a la curaduría de Victor Gomez. Elige tu proceso:")
 
-tab1, tab2, tab3 = st.tabs(["📸 Análisis Referencia", "✍️ Tu Idea de Autor", "📅 Agenda Oasis"])
+# --- 2. LÓGICA DEL ANALISTA (CEREBRO) ---
+def calcular_presupuesto(descripcion, zona, tamaño):
+    zonas_dificiles = ['costillas', 'cuello', 'estomago', 'manos', 'pies', 'cara']
+    base_por_pulgada = 50 # Un punto de partida base
+    
+    complejidad = 1.0
+    # Análisis de palabras clave
+    desc_low = descripcion.lower()
+    if any(word in desc_low for word in ["detalle", "micro", "realismo", "neotraditional"]):
+        complejidad += 0.6
+    if "color" in desc_low:
+        complejidad += 0.4
+        
+    # Multiplicador por zona de dificultad
+    if zona.lower() in zonas_dificiles:
+        complejidad += 0.5
+        
+    total = (base_por_pulgada * tamaño) * complejidad
+    return round(total, 2)
+
+# --- 3. INTERFAZ DE USUARIO ---
+tab1, tab2 = st.tabs(["🔍 ESCÁNER E IA", "📅 AGENDA OASIS"])
 
 with tab1:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.subheader("Análisis de Complejidad")
-    foto = st.file_uploader("Sube tu referencia", type=["jpg", "png", "jpeg"])
+    st.subheader("🕵️ Analista de Complejidad")
+    
+    foto = st.file_uploader("Sube tu referencia visual", type=["jpg", "png", "jpeg"])
     if foto:
-        st.image(Image.open(foto), use_container_width=True)
-        st.info("🤖 IA: Esperando descripción técnica en la siguiente pestaña para cruzar datos.")
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.image(foto, width=300)
+
+    user_idea = st.text_area("¿Qué tienes en mente? (Estilo, detalles, elementos)")
+    col1, col2 = st.columns(2)
+    with col1:
+        user_zone = st.text_input("¿Zona del cuerpo?")
+    with col2:
+        user_size = st.number_input("Tamaño aprox. (pulgadas)", min_value=1, value=3)
+
+    if st.button("Analizar Idea con IA"):
+        if user_idea and user_zone:
+            precio_final = calcular_presupuesto(user_idea, user_zone, user_size)
+            
+            with st.status("Analizando densidad de pigmento y zona...", expanded=True) as status:
+                time.sleep(1.2)
+                st.write("🔬 Escaneando referencia visual...")
+                time.sleep(1)
+                st.write("⚖️ Calculando horas de sesión y técnica...")
+                status.update(label="Análisis de Oasis Completado", state="complete")
+            
+            st.metric(label="Inversión Estimada", value=f"${precio_final} USD")
+            st.info(f"**Veredicto:** Este diseño en '{user_zone}' requiere precisión de alto nivel. Ve a la pestaña de Agenda para reservar.")
+        else:
+            st.warning("Por favor, describe tu visión y la zona para que la IA pueda trabajar.")
 
 with tab2:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.subheader("Cuéntame tu Visión")
-    st.write("Para que nuestra IA calcule un presupuesto preciso, describe tu idea siguiendo estos ejemplos:")
+    st.subheader("📅 Reserva tu Espacio")
+    st.write("Para asegurar tu cita en Oasis, se requiere un depósito de reserva.")
+    st.date_input("Selecciona tu fecha tentativa", value=None)
     
-    # --- BLOQUE DE INTELIGENCIA / GUÍA AL CLIENTE ---
     st.markdown("""
-    <div class='ejemplo-box'>
-        <b>Ejemplo 1:</b> "Un tatuaje de 3 pulgadas a color, estilo Neotraditional, un poco más arriba del codo."<br><br>
-        <b>Ejemplo 2:</b> "Un tatuaje Blackwork en mi muslo de 14 pulgadas con detalles tribales."
+    <div style="background-color: #1A1A1A; padding: 20px; border-radius: 10px; border-left: 5px solid #FF4B2B;">
+        <h3 style="margin:0;">💳 DEPÓSITO DE RESERVA</h3>
+        <p style="font-size: 24px; font-weight: bold; color: #FF4B2B !important;">Monto: $60.00</p>
+        <p style="font-size: 12px;">Este monto asegura tu lugar y se deduce del total de la obra.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    vision = st.text_area("¿Qué tienes en mente? (Incluye tamaño en pulgadas y ubicación)", placeholder="Ej: 5 pulgadas, antebrazo, estilo neotribal...")
-    
-    if st.button("Analizar Idea con IA"):
-        with st.spinner("Procesando dimensiones y complejidad..."):
-            time.sleep(2)
-            if vision:
-                st.success("✅ Datos recibidos. La IA ha detectado los parámetros de escala y ubicación.")
-                st.write("Victor revisará esta descripción junto a tu referencia para validar el presupuesto final.")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with tab3:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.subheader("Reserva de Fecha")
-    fecha = st.date_input("Selecciona tu día", min_value=date.today())
-    st.write(f"Has seleccionado: {fecha}")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# --- BILLETERA DE RESERVA ---
-st.markdown(f"""
-    <div class='card' style='border: 1px solid #FF4B00;'>
-        <h3 style='color: #FF4B00 !important; border:none;'>💳 DEPÓSITO DE RESERVA</h3>
-        <p style='font-size: 1.2em;'>Monto: <strong>$60.00</strong></p>
-        <p style='color: #888; font-size: 0.85em;'>Este monto asegura tu espacio en Oasis y se deduce del precio total de la obra.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.write("---")
+    st.write("👉 **IMPORTANTE:** Una vez analizada tu idea, envía la captura del presupuesto al DM de @vikin_ink_tatoo.")
