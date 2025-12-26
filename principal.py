@@ -1,33 +1,36 @@
 import streamlit as st
 from datetime import date
 
-# Configuración de página con estética Adrenaline
-st.set_page_config(page_title="Adrenaline Tattoo Studio", layout="centered")
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(
+    page_title="Adrenaline Tattoo Studio", 
+    layout="centered",
+    page_icon="💉"
+)
 
-# --- 1. CARTEL DINÁMICO (MANUAL DEL CLIENTE) ---
-# CAMBIO APLICADO AQUÍ: Jeringa y nombre "Adrenaline"
+# --- 1. ENCABEZADO Y CARTEL (MANUAL DEL CLIENTE) ---
 st.title("💉 Bienvenidos a Adrenaline")
 
-with st.expander("📖 CÓMO USAR ESTA HERRAMIENTA (Actualizado)", expanded=True):
+with st.expander("📖 CÓMO INICIAR TU PROYECTO", expanded=True):
     st.write("""
-    1. **Visualiza:** Sube una foto de referencia (opcional) para que Stephanie y los artistas entiendan tu idea.
-    2. **Describe:** Escribe qué quieres tatuarte. Nuestro algoritmo analizará tu descripción para ajustar la precisión del presupuesto.
-    3. **Mide:** Introduce el tamaño en **pulgadas o centímetros**. El sistema hará la conversión automática.
-    4. **Estilo:** Selecciona uno de los estilos base. El sistema calculará las horas de trabajo y el precio final (incluyendo insumos) sin que tengas que adivinar.
-    5. **Elige tu fecha:** Usa el calendario para separar tu espacio.
+    1. **Visualiza:** Sube tu referencia (opcional).
+    2. **Describe:** Cuéntanos tu idea para cotizar.
+    3. **Mide:** Elige pulgadas o centímetros (el sistema convierte solo).
+    4. **Cotiza:** El algoritmo calcula el tiempo y costo exacto.
+    5. **Reserva:** Bloquea tu fecha en el calendario.
     """)
 
 # --- 2. EL AVATAR: STEPHANIE ---
-st.info("👋 **Stephanie:** Hola, soy la encargada de organizar tu sesión. Cuéntame qué tienes en mente para ayudarte con la cotización.")
+st.info("👋 **Stephanie:** Hola. Soy la coordinadora de Adrenaline. Introduce tus datos abajo para generar tu presupuesto y reservar.")
 
 # --- 3. FORMULARIO DE ENTRADA ---
 col_foto, col_desc = st.columns([1, 2])
 
 with col_foto:
-    foto_referencia = st.file_uploader("Sube tu referencia (Opcional)", type=['jpg', 'png', 'jpeg'])
+    foto_referencia = st.file_uploader("Sube referencia (Opcional)", type=['jpg', 'png', 'jpeg'])
 
 with col_desc:
-    descripcion = st.text_area("¿Qué tienes en mente?", placeholder="Ej: Una pantera negra con flores en el antebrazo...")
+    descripcion = st.text_area("Descripción de tu pieza:", placeholder="Ej: Cráneo con rosas neotradicionales...")
 
 # Selección de unidad y medida
 col_unidad, col_medida = st.columns(2)
@@ -40,13 +43,12 @@ with col_medida:
         pulgadas_reales = medida
     else:
         medida = st.number_input("Tamaño (Centímetros)", min_value=2, value=12)
-        pulgadas_reales = medida / 2.54 # Convertimos a pulgadas para el algoritmo
+        pulgadas_reales = medida / 2.54 # Conversión interna
 
-# Lista de estilos base principales
-estilo = st.selectbox("Estilo técnico base:", ["Lettering Sencillo", "Neotradicional", "Neotribal", "Blackwork", "Realismo"])
+# Lista de estilos base (Pilares)
+estilo = st.selectbox("Estilo técnico:", ["Lettering Sencillo", "Neotradicional", "Neotribal", "Blackwork", "Realismo"])
 
-# --- 4. ALGORITMO DE CÁLCULO (EL MOTOR) ---
-# Definimos factores de tiempo por estilo (horas por pulgada cuadrada o lineal aprox)
+# --- 4. ALGORITMO DE CÁLCULO (LÓGICA INTERNA) ---
 factores_estilo = {
     "Lettering Sencillo": 0.4,
     "Neotradicional": 1.2,
@@ -56,20 +58,43 @@ factores_estilo = {
 }
 
 factor = factores_estilo.get(estilo, 1.0)
-# Cálculo de horas basado en el tamaño y el estilo
 horas_estimadas = round(pulgadas_reales * factor, 1)
 
 # Variables de precio
-precio_insumos = 50 # Base fija de materiales
-precio_por_hora = 100 # Tu tarifa por hora
+precio_insumos = 50 
+precio_por_hora = 100 
 precio_final = (horas_estimadas * precio_por_hora) + precio_insumos
 
-# --- 5. CALENDARIO DE RESERVA ---
-st.subheader("📅 Reserva tu fecha")
-fecha_cita = st.date_input("Selecciona el día de tu sesión", min_value=date.today())
+# --- 5. CALENDARIO ---
+st.subheader("📅 Disponibilidad")
+fecha_cita = st.date_input("Selecciona tu día", min_value=date.today())
 
-# --- 6. SECCIÓN DE ARTISTAS (EDITABLE) ---
+# --- 6. EQUIPO DE ARTISTAS ---
 st.divider()
-st.subheader("🎨 Nuestros Artistas")
-# Lista de artistas actuales
-artistas = ["Momo",
+st.subheader("🩸 Artistas Residentes")
+artistas = ["Momo", "Steve", "Sonia", "Víctor"]
+st.write(f"Especialistas disponibles: **{', '.join(artistas)}**")
+
+# Recomendación inteligente
+st.success(f"⚡ Para un trabajo **{estilo}**, cualquiera de nuestros artistas ({', '.join(artistas)}) está cualificado.")
+
+# --- 7. RESUMEN Y ACCIÓN ---
+if st.button("CALCULAR Y CONFIRMAR"):
+    st.markdown("---")
+    st.header("💀 Resumen del Proyecto")
+    
+    col_res1, col_res2 = st.columns(2)
+    with col_res1:
+        if foto_referencia:
+            st.image(foto_referencia, width=150)
+        st.write(f"**Idea:** {descripcion}")
+        st.write(f"**Estilo:** {estilo}")
+        st.write(f"**Tamaño:** {medida} {unidad}")
+        st.write(f"**Fecha:** {fecha_cita}")
+    
+    with col_res2:
+        st.metric(label="Tiempo de Sesión", value=f"{horas_estimadas} Horas")
+        st.write(f"**Insumos estériles:** ${precio_insumos}")
+        st.metric(label="Total Estimado", value=f"${precio_final:.2f}")
+    
+    st.info("📧 **Stephanie:** Datos recibidos. Te enviaremos la confirmación oficial al correo.")
