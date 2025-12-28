@@ -1,66 +1,70 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
+import io
 
-# 1. Configuración del Oasis
-st.set_page_config(page_title="Oasis | Motor Visual", layout="wide")
+# 1. Configuración de Escena
+st.set_page_config(page_title="Oasis | Studio Pro", layout="wide")
 
-# 2. Estética de Fondo (Inyección directa)
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .block-container {padding: 0px;}
-    body {background-color: #0a0a0a;}
-    </style>
-    """, unsafe_allow_html=True)
-
-# 3. La Interfaz Completa (Carga, Medidas y Estética)
-# Asegúrate de copiar hasta las comillas finales """
-oasis_interface = """
+# 2. El Alma del Oasis (Interfaz Negra y Dorada)
+# He corregido las comillas para que NADA se rompa.
+oasis_html = """
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --ink: #0a0a0a; }
-        body { margin: 0; background: var(--ink); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.8rem; font-style: italic; font-weight: 200; margin: 0; color: white; }
-        .tagline { letter-spacing: 7px; text-transform: uppercase; font-size: 0.7rem; color: var(--gold); margin-bottom: 35px; }
+        :root { --gold: #d4af37; --ink: #0a0a0a; --gray: #1a1a1a; }
+        body { margin: 0; background: var(--ink); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         
-        .panel { background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); padding: 40px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); width: 330px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 40px 100px rgba(0,0,0,0.6); }
-        .input-group { display: flex; gap: 10px; }
-        input { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 14px; border-radius: 12px; color: white; outline: none; font-size: 14px; }
+        .card { background: var(--gray); padding: 40px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.05); width: 320px; text-align: center; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
+        h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-style: italic; margin: 0; font-weight: 200; }
+        .subtitle { letter-spacing: 6px; text-transform: uppercase; font-size: 10px; color: var(--gold); margin-bottom: 30px; }
         
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; transition: 0.3s; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { width: 100%; background: #000; border: 1px solid #333; padding: 12px; border-radius: 12px; color: white; outline: none; text-align: center; }
+        
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; transition: 0.3s; }
         .btn-gold { background: var(--gold); color: black; margin-top: 10px; }
-        .btn-gold:hover { transform: scale(1.03); background: #e5be4d; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
+        .btn-gold:hover { background: #fff; transform: translateY(-2px); }
+        .btn-upload { background: transparent; border: 1px solid #444; color: #888; margin-bottom: 5px; }
         
-        #chat-btn { position: fixed; bottom: 35px; right: 35px; width: 65px; height: 65px; border-radius: 50%; background: white; border: none; cursor: pointer; font-size: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #status { font-size: 11px; color: var(--gold); margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
-    <div class="hero"><h1>Oasis</h1></div>
-    <div class="tagline">Microanálisis Visual</div>
-
-    <div class="panel">
-        <div class="input-group">
-            <input type="number" id="w_cm" placeholder="Ancho cm">
-            <input type="number" id="h_cm" placeholder="Alto cm">
+    <div class="card">
+        <h1>Oasis</h1>
+        <div class="subtitle">Microanálisis Visual</div>
+        
+        <div class="input-row">
+            <input type="number" id="w" placeholder="Ancho cm">
+            <input type="number" id="h" placeholder="Alto cm">
         </div>
         
-        <input type="file" id="real_up" hidden accept="image/*" onchange="document.getElementById('fake_btn').innerText = '✅ LISTO'">
-        <button class="btn btn-outline" id="fake_btn" onclick="document.getElementById('real_up').click()">📸 CARGAR DISEÑO</button>
+        <input type="file" id="upload" hidden onchange="showStatus()">
+        <button class="btn btn-upload" onclick="document.getElementById('upload').click()">📸 CARGAR REFERENCIA</button>
         
-        <button class="btn btn-gold" onclick="alert('Analizando complejidad...')">INICIAR CÁLCULO</button>
+        <div id="status">DISEÑO LISTO PARA ANALIZAR</div>
+        
+        <button class="btn btn-gold" onclick="analizar()">CALCULAR PRESUPUESTO</button>
     </div>
 
-    <button id="chat-btn">💬</button>
+    <script>
+        function showStatus() {
+            document.getElementById('status').style.display = 'block';
+        }
+        function analizar() {
+            const w = document.getElementById('w').value;
+            const h = document.getElementById('h').value;
+            if(!w || !h) { alert('Ingresa medidas'); return; }
+            alert('Director: Procesando ' + (w*h) + ' cm²...');
+        }
+    </script>
 </body>
 </html>
 """
 
-# 4. Renderizado Final (Sin errores)
-components.html(oasis_interface, height=900)
+# Renderizado del componente
+components.html(oasis_html, height=800)
