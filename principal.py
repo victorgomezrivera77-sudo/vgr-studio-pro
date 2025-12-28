@@ -1,73 +1,83 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Configuración del Entorno Oasis
+# Configuración base del Oasis
 st.set_page_config(page_title="Oasis | Microanálisis", layout="wide")
 
-# El Corazón: Interfaz, Galería de 10 Estilos y Chat
-# Aquí encapsulamos todo el HTML/JS que diseñamos
-oasis_full_code = """
+# Encapsulamos TODA la interfaz en una sola variable de texto
+# Esto evita el error de la llave '}'
+oasis_app = """
 <!DOCTYPE html>
 <html>
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --ink: #0a0a0a; --soft: #f9f9f9; }
+        :root { --ink: #0a0a0a; --gold: #d4af37; --bg-soft: #f8f8f8; }
         body { margin: 0; background: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .bg { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #f4f4f4 100%); z-index: -1; }
-        .title { text-align: center; }
-        h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 200; font-style: italic; margin: 0; }
+        .aura { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #fff 0%, #f2f2f2 100%); z-index: -1; }
+        .main-ui { text-align: center; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 200; font-style: italic; margin: 0; color: var(--ink); }
         
-        /* El Botón de Chat */
-        #launcher { position: fixed; bottom: 40px; right: 40px; width: 70px; height: 70px; border-radius: 50%; background: var(--ink); color: #fff; border: none; cursor: pointer; font-size: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; }
+        /* Botón Flotante */
+        #launcher { position: fixed; bottom: 40px; right: 40px; width: 75px; height: 75px; border-radius: 50%; background: var(--ink); color: #fff; border: none; cursor: pointer; font-size: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; transition: 0.4s; }
+        #launcher:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* Ventana de Chat */
+        #window { position: fixed; bottom: 130px; right: 40px; width: 400px; height: 620px; background: #fff; border-radius: 35px; display: none; flex-direction: column; box-shadow: 0 25px 70px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05); overflow: hidden; z-index: 1000; }
+        #header { padding: 30px; background: var(--ink); color: #fff; text-align: center; letter-spacing: 4px; font-size: 11px; font-weight: 600; }
+        #feed { flex: 1; padding: 25px; background: var(--bg-soft); overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        #footer { padding: 25px; background: #fff; display: flex; flex-direction: column; gap: 12px; }
+
+        .bubble { max-width: 85%; padding: 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .bot { background: #fff; border: 1px solid #eee; align-self: flex-start; color: #333; }
+        .log { font-style: italic; color: #999; font-size: 11px; text-align: center; width: 100%; margin: 5px 0; }
         
-        /* La Ventana del Oasis */
-        #window { position: fixed; bottom: 120px; right: 40px; width: 400px; height: 600px; background: #fff; border-radius: 30px; display: none; flex-direction: column; box-shadow: 0 20px 80px rgba(0,0,0,0.15); border: 1px solid #eee; overflow: hidden; z-index: 1000; }
-        #header { padding: 25px; background: var(--ink); color: #fff; text-align: center; letter-spacing: 3px; font-size: 12px; }
-        #feed { flex: 1; padding: 25px; background: var(--soft); overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        #footer { padding: 25px; display: flex; flex-direction: column; gap: 10px; }
-        
-        .bubble { max-width: 85%; padding: 15px; border-radius: 18px; font-size: 14px; line-height: 1.5; }
-        .bot { background: #fff; border: 1px solid #eee; align-self: flex-start; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #eee; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 11px; transition: 0.3s; }
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: 1px solid #eee; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; transition: 0.3s; }
         .primary { background: var(--ink); color: #fff; border: none; }
+        .btn:hover { background: #f0f0f0; transform: translateY(-2px); }
     </style>
 </head>
 <body>
-    <div class="bg"></div>
-    <div class="title"><h1>Oasis</h1><p style="letter-spacing: 4px; color: #999;">CURADURÍA VISUAL</p></div>
+    <div class="aura"></div>
+    <div class="main-ui">
+        <h1>Oasis</h1>
+        <p style="letter-spacing: 5px; text-transform: uppercase; color: #aaa; font-size: 0.7rem; margin-top: 10px;">Microanálisis & Curaduría</p>
+    </div>
 
     <button id="launcher" onclick="toggle()">✧</button>
+    
     <div id="window">
-        <div id="header">MICROANÁLISIS DE PRECISIÓN</div>
-        <div id="feed">
-            <div class="bubble bot">Bienvenido al Oasis. Sube tu diseño para que el <strong>Director</strong> analice estilo y complejidad.</div>
+        <div id="header">SISTEMA DE PRECISIÓN VISUAL</div>
+        <div id="feed" id="chatFeed">
+            <div class="bubble bot">Bienvenido al <strong>Oasis</strong>. Sube la imagen de tu diseño para que nuestro <strong>Director</strong> calcule el presupuesto basado en los 10 estilos de mercado.</div>
         </div>
         <div id="footer">
-            <input type="file" id="imgInp" hidden onchange="analizar()">
-            <button class="btn primary" onclick="document.getElementById('imgInp').click()">📸 SUBIR IMAGEN</button>
-            <button class="btn" onclick="alert('Conectando con Asistente...')">💬 CHAT DIRECTO</button>
+            <input type="file" id="fileInp" hidden accept="image/*" onchange="iniciarAnalisis()">
+            <button class="btn primary" onclick="document.getElementById('fileInp').click()">📸 INICIAR MICROANÁLISIS</button>
+            <button class="btn">💬 CONSULTAR ASISTENTE</button>
         </div>
     </div>
 
     <script>
-        const GALERIAS = {
-            "FINE_LINE": 15, "LETTERING": 12, "REALISMO": 150, "TRADICIONAL": 100, "NEOTRAD": 130
-        };
-
-        function toggle() { 
-            const w = document.getElementById('window');
-            w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+        function toggle() {
+            const win = document.getElementById('window');
+            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        function analizar() {
-            const f = document.getElementById('feed');
-            f.innerHTML += '<div class="bubble bot"><em>Supervisor: Analizando pigmentos y complejidad...</em></div>';
+        function iniciarAnalisis() {
+            const feed = document.getElementById('feed');
+            
+            // Simulación de los Pisos de trabajo
+            feed.innerHTML += '<div class="log">SUPERVISOR: Validando calidad de imagen...</div>';
             
             setTimeout(() => {
-                f.innerHTML += '<div class="bubble bot"><strong>DIRECTOR:</strong> Estilo Detectado.<br><strong>ANALISTA:</strong> Complejidad evaluada.</div>';
-                f.innerHTML += '<button class="btn primary" style="margin-top:10px" onclick="window.open(\'https://wa.me/Oasis-writer\')">📅 AGENDAR CITA</button>';
-                f.scrollTop = f.scrollHeight;
+                feed.innerHTML += '<div class="bubble bot"><strong>DIRECTOR:</strong> Estilo detectado (Fine Line/Lettering).<br><strong>ANALISTA:</strong> Complejidad Nivel 2 confirmada.</div>';
+                
+                setTimeout(() => {
+                    feed.innerHTML += '<div class="bubble bot"><strong>ANÁLISIS FINAL:</strong> Presupuesto calculado con éxito.</div>';
+                    feed.innerHTML += '<button class="btn primary" style="margin-top:10px" onclick="window.open(\'https://wa.me/TU_NUMERO\')">📅 AGENDAR EN OASIS</button>';
+                    feed.scrollTop = feed.scrollHeight;
+                }, 1500);
             }, 2500);
         }
     </script>
@@ -75,5 +85,5 @@ oasis_full_code = """
 </html>
 """
 
-# Renderizado del bloque completo
-components.html(oasis_full_code, height=900)
+# Le pedimos a Streamlit que muestre nuestra interfaz sin intentar "leerla"
+components.html(oasis_app, height=900, scrolling=False)
