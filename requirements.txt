@@ -1,5 +1,3 @@
-google-generativeai
-python-dotenv
-Flask
-Pillow
-requests
+streamlit
+streamlit-components-high-level
+protobuf==3.20.3
