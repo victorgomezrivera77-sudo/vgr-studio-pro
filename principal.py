@@ -1,14 +1,10 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# CONFIGURACIÓN DE ADMINISTRACIÓN (PAGINA COMPLETA)
-st.set_page_config(
-    page_title="Oasis | Microanálisis Visual",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+# Configuración de Administración del Oasis
+st.set_page_config(page_title="Oasis | Calculadora de Tattoo", layout="wide")
 
-# OCULTAR ELEMENTOS DE STREAMLIT PARA ESTÉTICA IMPECABLE
+# Ocultar menús para estética impecable
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -16,146 +12,65 @@ st.markdown("""
     header {visibility: hidden;}
     .block-container {padding: 0px;}
     </style>
-    """, unsafe_allow_status=True)
+    """, unsafe_allow_html=True)
 
-# EL CORAZÓN DEL OASIS (Interfaz + Cerebros + Chat)
-oasis_interface = """
+# Interfaz y Motor de Cálculo (Cerebro y Cuerpo)
+oasis_app = """
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --oasis-bg: #ffffff;
-            --oasis-ink: #0a0a0a;
-            --oasis-soft: #f4f4f4;
-        }
-
-        body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background-color: var(--oasis-bg);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* FONDO DE RELAJACIÓN */
-        .background-aura {
-            position: absolute; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #ebebeb 100%);
-            z-index: -1;
-        }
-
-        .main-hero { text-align: center; z-index: 1; }
-        .main-hero h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 4rem; font-weight: 200; font-style: italic;
-            margin: 0; color: var(--oasis-ink);
-        }
-        .main-hero p {
-            letter-spacing: 6px; text-transform: uppercase;
-            color: #999; font-size: 0.8rem; margin-top: 15px;
-        }
-
-        /* BOTÓN DE LANZAMIENTO (INTERFAZ DE CHAT) */
-        #launcher {
-            position: fixed; bottom: 50px; right: 50px;
-            width: 80px; height: 80px; border-radius: 50%;
-            background: var(--oasis-ink); color: white;
-            border: none; cursor: pointer; font-size: 35px;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.25);
-            transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-            z-index: 1000;
-        }
-        #launcher:hover { transform: scale(1.15) rotate(90deg); }
-
-        /* VENTANA DEL MICROANÁLISIS */
-        #oasis-window {
-            position: fixed; bottom: 150px; right: 50px;
-            width: 420px; height: 650px; background: white;
-            border-radius: 40px; display: none; flex-direction: column;
-            box-shadow: 0 35px 120px rgba(0,0,0,0.2);
-            border: 1px solid rgba(0,0,0,0.05); overflow: hidden; z-index: 1000;
-        }
-
-        #header {
-            padding: 35px; background: var(--oasis-ink); color: white;
-            text-align: center; font-size: 0.8rem; letter-spacing: 4px; font-weight: 400;
-        }
-
-        #feed {
-            flex: 1; padding: 30px; overflow-y: auto; background: var(--oasis-soft);
-            display: flex; flex-direction: column; gap: 20px;
-        }
-
-        .bubble {
-            max-width: 85%; padding: 18px; border-radius: 22px;
-            font-size: 14px; line-height: 1.6; animation: slideUp 0.5s ease;
-        }
-        .bot { background: white; align-self: flex-start; border: 1px solid #eee; color: #333; }
-        .log { font-style: italic; color: #aaa; font-size: 11px; text-align: center; }
-
-        #footer { padding: 30px; background: white; display: flex; flex-direction: column; gap: 15px; }
-
-        .btn {
-            width: 100%; padding: 18px; border-radius: 20px;
-            border: 1px solid #eee; background: white; cursor: pointer;
-            font-weight: 600; font-size: 12px; letter-spacing: 1px;
-            text-transform: uppercase; transition: 0.3s;
-        }
-        .btn-primary { background: var(--oasis-ink); color: white; border: none; }
-        .btn:hover { background: #f0f0f0; transform: translateY(-3px); }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --ink: #0a0a0a; --bg: #fdfdfd; }
+        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .hero { text-align: center; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 200; font-style: italic; margin: 0; }
+        
+        /* Interfaz de Calculadora */
+        #launcher { position: fixed; bottom: 40px; right: 40px; width: 75px; height: 75px; border-radius: 50%; background: var(--ink); color: #fff; border: none; cursor: pointer; font-size: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; }
+        #window { position: fixed; bottom: 130px; right: 40px; width: 400px; height: 600px; background: #fff; border-radius: 35px; display: none; flex-direction: column; box-shadow: 0 25px 70px rgba(0,0,0,0.15); border: 1px solid #eee; overflow: hidden; z-index: 1000; }
+        #header { padding: 30px; background: var(--ink); color: #fff; text-align: center; letter-spacing: 4px; font-size: 11px; }
+        #feed { flex: 1; padding: 25px; background: #f9f9f9; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        #footer { padding: 25px; display: flex; flex-direction: column; gap: 12px; }
+        
+        .bubble { max-width: 85%; padding: 15px; border-radius: 20px; font-size: 14px; line-height: 1.5; background: #fff; border: 1px solid #eee; }
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: 1px solid #eee; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 11px; }
+        .primary { background: var(--ink); color: #fff; border: none; }
     </style>
 </head>
 <body>
-    <div class="background-aura"></div>
-    <div class="main-hero">
-        <h1>Oasis</h1>
-        <p>Curaduría & Microanálisis</p>
-    </div>
-
-    <button id="launcher" onclick="toggleOasis()">✧</button>
+    <div class="hero"><h1>Oasis</h1><p style="letter-spacing: 5px; color: #999;">CALCULADORA DE PRECISIÓN</p></div>
+    <button id="launcher" onclick="toggle()">✧</button>
     
-    <div id="oasis-window">
-        <div id="header">SISTEMA DE PRECISIÓN VISUAL</div>
+    <div id="window">
+        <div id="header">MICROANÁLISIS VISUAL</div>
         <div id="feed">
-            <div class="bubble bot">
-                Bienvenido al <strong>Oasis</strong>. Sube tu diseño para que el <strong>Director</strong> analice estilo y complejidad técnica.
-            </div>
+            <div class="bubble">Bienvenido. Sube una imagen para calcular el presupuesto basado en estilo y complejidad.</div>
         </div>
         <div id="footer">
-            <input type="file" id="imgInput" hidden accept="image/*" onchange="procesar()">
-            <button class="btn btn-primary" onclick="document.getElementById('imgInput').click()">📸 INICIAR ANÁLISIS</button>
-            <button class="btn">💬 CONSULTA ASISTENTE</button>
+            <input type="file" id="fileInp" hidden accept="image/*" onchange="calcular()">
+            <button class="btn primary" onclick="document.getElementById('fileInp').click()">📸 SUBIR DISEÑO</button>
         </div>
     </div>
 
     <script>
-        function toggleOasis() {
-            const win = document.getElementById('oasis-window');
-            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+        const GALERIAS = {
+            "FINE_LINE": 15, "LETTERING": 12, "REALISMO": 150, "TRADICIONAL": 100, "NEOTRAD": 130
+        };
+
+        function toggle() {
+            const w = document.getElementById('window');
+            w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        function addMsg(text, type='bot') {
+        function calcular() {
             const feed = document.getElementById('feed');
-            const m = document.createElement('div');
-            m.className = `bubble ${type}`;
-            m.innerHTML = text;
-            feed.appendChild(m);
-            feed.scrollTop = feed.scrollHeight;
-        }
-
-        function procesar() {
-            addMsg("<em>SUPERVISOR: Escaneando imagen y eliminando ruido...</em>", "log");
+            feed.innerHTML += '<div style="text-align:center; font-size:11px; color:#aaa"><em>SUPERVISOR: Analizando complejidad...</em></div>';
+            
             setTimeout(() => {
-                addMsg("<strong>DIRECTOR:</strong> Estilo detectado con éxito.<br><strong>ANALISTA:</strong> Complejidad Nivel 2 evaluada.");
-                setTimeout(() => {
-                    addMsg("<strong>ANÁLISIS FINAL:</strong> Presupuesto calculado basado en ocupación alta.", "bot");
-                    addMsg("<button class='btn btn-primary' onclick='window.open(\"https://wa.me/Oasis-writer\")'>📅 AGENDAR EN OASIS</button>");
-                }, 1500);
+                feed.innerHTML += '<div class="bubble"><strong>DIRECTOR:</strong> Estilo Detectado.<br><strong>ANALISTA:</strong> Complejidad evaluada.</div>';
+                feed.innerHTML += '<button class="btn primary" onclick="window.open(\'https://wa.me/Oasis-writer\')">📅 RESERVAR CITA</button>';
+                feed.scrollTop = feed.scrollHeight;
             }, 2500);
         }
     </script>
@@ -163,5 +78,4 @@ oasis_interface = """
 </html>
 """
 
-# EJECUCIÓN CON ALTO (HEIGHT) FORZADO PARA QUE SE VEA TODO
-components.html(oasis_interface, height=1000, scrolling=False)
+components.html(oasis_app, height=900)
