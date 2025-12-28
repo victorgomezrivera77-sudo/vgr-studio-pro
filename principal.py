@@ -1,92 +1,104 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Configuración de Escena
-st.set_page_config(page_title="Calculadora Oasis", layout="wide")
+# Configuración Maestra del Oasis
+st.set_page_config(page_title="Oasis | Business Automation", layout="wide")
 
-# 2. Estética Impecable (Oasis)
+# Estética Impecable y Ocultamiento de herramientas estándar
 st.markdown("""
     <style>
     #MainMenu, footer, header {visibility: hidden;}
     .block-container {padding: 0px;}
-    body {background-color: #0a0a0a;}
+    body {background-color: #0a0a0a; color: white;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Interfaz con el Algoritmo de 3 Motores
-oasis_logic = """
+# Interfaz Avanzada: Curaduría + Inteligencia de Negocio
+oasis_master_ui = """
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --ink: #0a0a0a; }
-        body { margin: 0; background: var(--ink); color: white; font-family: 'Inter', sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        :root { --gold: #d4af37; --ink: #0a0a0a; --glass: rgba(255,255,255,0.03); }
+        body { margin: 0; background: var(--ink); font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         
-        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); padding: 40px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); width: 350px; text-align: center; }
-        h1 { font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; color: white; }
-        
-        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 15px; border-radius: 12px; color: white; outline: none; }
-        
-        .label-mini { font-size: 9px; color: var(--gold); text-align: left; margin-bottom: 5px; letter-spacing: 1px; }
+        .main-container { width: 90%; max-width: 400px; text-align: center; animation: fadeIn 2s ease; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 4rem; font-style: italic; font-weight: 200; margin: 0; letter-spacing: -2px; }
+        .tagline { color: var(--gold); letter-spacing: 8px; text-transform: uppercase; font-size: 10px; margin-bottom: 40px; opacity: 0.8; }
 
-        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; transition: 0.4s; }
-        .btn-gold { background: var(--gold); color: black; margin-top: 15px; }
+        /* Panel de Control Pro */
+        .panel { background: var(--glass); backdrop-filter: blur(20px); padding: 35px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; transition: 0.5s; }
+        .panel:hover { border-color: var(--gold); box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); }
         
-        #result-box { margin-top: 25px; padding: 20px; border-radius: 20px; background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); display: none; }
-        .price { font-size: 28px; color: var(--gold); font-weight: 600; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select { background: rgba(0,0,0,0.6); border: 1px solid #222; padding: 16px; border-radius: 18px; color: white; width: 100%; outline: none; font-size: 14px; }
+        
+        .btn-main { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--gold); color: black; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { transform: scale(1.02); background: #fff; }
+
+        /* Chat Flotante (La Meta de Automatización) */
+        #oasis-chat { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: white; color: black; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 24px; z-index: 1000; }
+
+        /* Resultado Elegante */
+        #result { margin-top: 25px; padding: 20px; border-radius: 25px; background: rgba(255,255,255,0.02); display: none; border: 1px dashed var(--gold); }
+        .price-val { font-size: 32px; color: var(--gold); font-weight: 200; margin: 10px 0; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>CALCULADORA DE PRECIOS DE TATUAJES</h1>
-        
-        <div class="label-mini">DIMENSIONES (CM)</div>
-        <div class="input-row">
-            <input type="number" id="w" placeholder="Ancho">
-            <input type="number" id="h" placeholder="Alto">
-        </div>
-        
-        <div class="label-mini">NIVEL DE COMPLEJIDAD (MOTOR)</div>
-        <select id="motor">
-            <option value="100">ALTA (Realismo / Detalle) - $100/h</option>
-            <option value="80">MEDIA (Sombreado / Color) - $80/h</option>
-            <option value="60">SIMPLE (Lettering / Línea) - $60/h</option>
-        </select>
-        
-        <button class="btn btn-gold" onclick="calcular()">CALCULAR PRESUPUESTO</button>
-        
-        <div id="result-box">
-            <div style="font-size: 10px; color: #888;">INVERSIÓN ESTIMADA</div>
-            <div class="price" id="final-price">$0.00</div>
-            <div style="font-size: 9px; margin-top: 10px; color: var(--gold);">*Calculado bajo el sistema Oasis</div>
+    <div class="main-container">
+        <h1>Oasis</h1>
+        <div class="tagline">Calculadora de Precios de Tatuajes</div>
+
+        <div class="panel">
+            <div class="input-group">
+                <input type="number" id="width" placeholder="Ancho (cm)">
+                <input type="number" id="height" placeholder="Alto (cm)">
+            </div>
+            
+            <select id="complexity">
+                <option value="100">ALTA COMPLEJIDAD ($100/h)</option>
+                <option value="80">SOMBRADO / COLOR ($80/h)</option>
+                <option value="60">LETTERING / SIMPLE ($60/h)</option>
+            </select>
+            
+            <button class="btn-main" style="margin-top: 20px;" onclick="calculate()">GENERAR COTIZACIÓN</button>
+
+            <div id="result">
+                <div style="font-size: 10px; letter-spacing: 2px; opacity: 0.6;">INVERSIÓN ESTIMADA</div>
+                <div class="price-val" id="total-price">$0.00</div>
+                <button class="btn-main" style="background: white; font-size: 9px; padding: 10px;" onclick="alert('Conectando con el Director...')">AGENDAR EN EL OASIS</button>
+            </div>
         </div>
     </div>
 
+    <div id="oasis-chat" onclick="alert('Oasis-AI: Hola Victor, estoy analizando tu visión...')">💬</div>
+
     <script>
-        function calcular() {
-            const w = document.getElementById('w').value;
-            const h = document.getElementById('h').value;
-            const tarifaHora = document.getElementById('motor').value;
+        function calculate() {
+            const w = document.getElementById('width').value;
+            const h = document.getElementById('height').value;
+            const rate = document.getElementById('complexity').value;
             
-            if(!w || !h) { alert("Ingresa las medidas"); return; }
+            if(!w || !h) return;
 
-            // ALGORITMO: (Área / factor_de_velocidad) * Tarifa_Hora
-            // Estimamos que en 1 hora se tatúan aprox 50cm2 de complejidad media.
+            // Algoritmo Oasis: (Área / factor de velocidad 40cm2/h) * Tarifa
+            // Ajustamos a 40 para ser más precisos con la curaduría
             const area = w * h;
-            const horasEstimadas = area / 50; 
-            const total = horasEstimadas * tarifaHora;
+            const time = area / 40;
+            let total = time * rate;
 
-            // Precio mínimo de mesa: $80 (puedes ajustarlo)
-            const precioFinal = total < 80 ? 80 : total;
+            // Precio base de mesa (Curaduría mínima)
+            if(total < 80) total = 80;
 
-            document.getElementById('final-price').innerText = "$" + Math.round(precioFinal).toLocaleString();
-            document.getElementById('result-box').style.display = "block";
+            document.getElementById('total-price').innerText = "$" + Math.round(total).toLocaleString();
+            document.getElementById('result').style.display = 'block';
         }
     </script>
 </body>
 </html>
 """
 
-components.html(oasis_logic, height=850)
+components.html(oasis_master_ui, height=900)
