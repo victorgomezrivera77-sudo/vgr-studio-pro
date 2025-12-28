@@ -1,70 +1,89 @@
 import streamlit as st
 import streamlit.components.v1 as components
-from PIL import Image
-import io
 
-# 1. Configuración de Escena
-st.set_page_config(page_title="Oasis | Studio Pro", layout="wide")
+# 1. Configuración del Oasis
+st.set_page_config(page_title="Oasis | Presupuesto Pro", layout="wide")
 
-# 2. El Alma del Oasis (Interfaz Negra y Dorada)
-# He corregido las comillas para que NADA se rompa.
-oasis_html = """
+# 2. Estética Impecable
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .block-container {padding: 0px;}
+    body {background-color: #0a0a0a;}
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. La Interfaz con Motor de Cálculo Real
+# He configurado un precio base de ejemplo para que veas el dinero moverse.
+oasis_interface = """
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --ink: #0a0a0a; --gray: #1a1a1a; }
-        body { margin: 0; background: var(--ink); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        :root { --gold: #d4af37; --ink: #0a0a0a; --glass: rgba(255,255,255,0.05); }
+        body { margin: 0; background: var(--ink); color: white; font-family: 'Inter', sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         
-        .card { background: var(--gray); padding: 40px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.05); width: 320px; text-align: center; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
+        .card { background: var(--glass); backdrop-filter: blur(20px); padding: 40px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); width: 340px; text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.7); }
         h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-style: italic; margin: 0; font-weight: 200; }
-        .subtitle { letter-spacing: 6px; text-transform: uppercase; font-size: 10px; color: var(--gold); margin-bottom: 30px; }
+        .tagline { letter-spacing: 6px; text-transform: uppercase; font-size: 9px; color: var(--gold); margin-bottom: 35px; }
         
         .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        input { width: 100%; background: #000; border: 1px solid #333; padding: 12px; border-radius: 12px; color: white; outline: none; text-align: center; }
+        input { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; color: white; outline: none; text-align: center; font-size: 16px; }
         
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; transition: 0.3s; }
-        .btn-gold { background: var(--gold); color: black; margin-top: 10px; }
-        .btn-gold:hover { background: #fff; transform: translateY(-2px); }
-        .btn-upload { background: transparent; border: 1px solid #444; color: #888; margin-bottom: 5px; }
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; transition: 0.4s; }
+        .btn-gold { background: var(--gold); color: black; margin-top: 15px; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #888; }
         
-        #status { font-size: 11px; color: var(--gold); margin-top: 10px; display: none; }
+        #result-box { margin-top: 25px; padding: 20px; border-radius: 20px; background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); display: none; }
+        .price { font-size: 24px; color: var(--gold); font-weight: 600; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>Oasis</h1>
-        <div class="subtitle">Microanálisis Visual</div>
+        <div class="tagline">Microanálisis Visual</div>
         
         <div class="input-row">
-            <input type="number" id="w" placeholder="Ancho cm">
-            <input type="number" id="h" placeholder="Alto cm">
+            <input type="number" id="width" placeholder="Ancho cm">
+            <input type="number" id="height" placeholder="Alto cm">
         </div>
         
-        <input type="file" id="upload" hidden onchange="showStatus()">
-        <button class="btn btn-upload" onclick="document.getElementById('upload').click()">📸 CARGAR REFERENCIA</button>
+        <button class="btn btn-outline" onclick="document.getElementById('file-up').click()">📸 CARGAR REFERENCIA</button>
+        <input type="file" id="file-up" hidden accept="image/*">
         
-        <div id="status">DISEÑO LISTO PARA ANALIZAR</div>
+        <button class="btn btn-gold" onclick="calcular()">CALCULAR PRESUPUESTO</button>
         
-        <button class="btn btn-gold" onclick="analizar()">CALCULAR PRESUPUESTO</button>
+        <div id="result-box">
+            <div style="font-size: 10px; letter-spacing: 2px; color: #aaa;">INVERSIÓN ESTIMADA</div>
+            <div class="price" id="final-price">$0.00</div>
+            <div style="font-size: 9px; margin-top: 10px; color: var(--gold); cursor: pointer;" onclick="window.open('https://wa.me/Oasis-writer')">➔ AGENDAR CITA</div>
+        </div>
     </div>
 
     <script>
-        function showStatus() {
-            document.getElementById('status').style.display = 'block';
-        }
-        function analizar() {
-            const w = document.getElementById('w').value;
-            const h = document.getElementById('h').value;
-            if(!w || !h) { alert('Ingresa medidas'); return; }
-            alert('Director: Procesando ' + (w*h) + ' cm²...');
+        function calcular() {
+            const w = document.getElementById('width').value;
+            const h = document.getElementById('height').value;
+            
+            if(!w || !h) {
+                alert("Por favor, ingresa las dimensiones para que el Director analice.");
+                return;
+            }
+
+            // Lógica de Negocio: Área * Tarifa (Ejemplo $10 por cm2)
+            const area = w * h;
+            const tarifa = 10; 
+            const total = area * tarifa;
+
+            document.getElementById('final-price').innerText = "$" + total.toLocaleString();
+            document.getElementById('result-box').style.display = "block";
         }
     </script>
 </body>
 </html>
 """
 
-# Renderizado del componente
-components.html(oasis_html, height=800)
+components.html(oasis_interface, height=900)
