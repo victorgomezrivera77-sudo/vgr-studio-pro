@@ -4,20 +4,29 @@ from PIL import Image, ImageFilter, ImageStat
 # --- 1. CONFIGURACIÓN DEL CEREBRO (BACKEND) ---
 st.set_page_config(page_title="Oasis | Studio Pro", layout="centered")
 
-# Función Algorítmica: El ojo que todo lo ve
+# Función Algorítmica: CALIBRADA V2 (Menos sensible)
 def analizar_complejidad(image):
-    img_gray = image.convert("L") # Escala de grises
-    edges = img_gray.filter(ImageFilter.FIND_EDGES) # Detectar trazos
+    # Convertimos a escala de grises
+    img_gray = image.convert("L")
+    
+    # Detectamos bordes
+    edges = img_gray.filter(ImageFilter.FIND_EDGES)
+    
+    # Calculamos la densidad de tinta (Energía de la imagen)
     stat = ImageStat.Stat(edges)
+    # Ajuste matemático: Promedio de píxeles de borde
     densidad = stat.sum[0] / (image.size[0] * image.size[1]) * 1000
     
-    # Decisión automática del motor
-    if densidad > 25:
-        return "ALTA COMPLEJIDAD", 100
-    elif densidad > 12:
-        return "SOMBRAS / COLOR", 80
-    else:
-        return "LÍNEA / SIMPLE", 60
+    # --- NUEVA CALIBRACIÓN DE UMBRALES ---
+    # Antes: >25 era Alto. Ahora exigimos >50 para ser "Realismo".
+    # Antes: >12 era Medio. Ahora exigimos >20.
+    
+    if densidad > 55:  # Solo realismo denso, color full, sombras pesadas
+        return "ALTA COMPLEJIDAD (Realismo)", 100
+    elif densidad > 20: # Sombreado, puntillismo, líneas detalladas
+        return "MEDIA (Sombras/Color)", 80
+    else:               # Línea pura, siluetas, minimalismo (El Elefante caerá aquí)
+        return "SIMPLE (Línea/Lettering)", 60
 
 # --- 2. ESTÉTICA DE LUJO (FRONTEND) ---
 st.markdown("""
@@ -59,7 +68,7 @@ with col2:
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         
-        # MI TRABAJO AUTÓNOMO: Analizo la imagen
+        # MI TRABAJO AUTÓNOMO: Analizo la imagen con nuevos umbrales
         tipo_trabajo, tarifa_detectada = analizar_complejidad(image)
         
         st.image(image, caption="ANÁLISIS DE ESTILO COMPLETADO", use_container_width=True)
@@ -81,15 +90,12 @@ with col2:
         h_in = st.number_input("ALTO (Pulgadas)", value=0.0, step=0.5)
 
     if st.button("CALCULAR INVERSIÓN"):
-        # Validación: ¿Hay imagen y medidas?
         if uploaded_file is None:
             st.error("⚠️ El Director necesita ver el diseño primero.")
         elif w_in == 0 or h_in == 0:
             st.warning("⚠️ Ingresa las medidas en pulgadas.")
         else:
-            # --- FÓRMULA DE CONVERSIÓN INVISIBLE ---
-            # Convertimos pulgadas a cm para el motor interno
-            # 1 pulgada = 2.54 cm
+            # Conversión Invisible (Pulgadas -> CM)
             w_cm = w_in * 2.54
             h_cm = h_in * 2.54
             area_cm = w_cm * h_cm
@@ -101,7 +107,6 @@ with col2:
             # Mínimo de sesión ($80)
             if precio < 80: precio = 80
             
-            # SALIDA FINAL
             st.markdown(f"""
             <div style='background: rgba(212, 175, 55, 0.1); border: 1px solid #d4af37; padding: 30px; border-radius: 20px; text-align: center; margin-top: 20px; animation: fadeIn 1s;'>
                 <div style='font-size: 10px; color: white; letter-spacing: 3px; opacity: 0.7;'>PRESUPUESTO ESTIMADO</div>
