@@ -1,100 +1,180 @@
-import streamlit as st
-from datetime import date
-
-# --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(
-    page_title="Adrenaline Tattoo Studio", 
-    layout="centered",
-    page_icon="💉"
-)
-
-# --- 1. ENCABEZADO Y CARTEL (MANUAL DEL CLIENTE) ---
-st.title("💉 Bienvenidos a Adrenaline")
-
-with st.expander("📖 CÓMO INICIAR TU PROYECTO", expanded=True):
-    st.write("""
-    1. **Visualiza:** Sube tu referencia (opcional).
-    2. **Describe:** Cuéntanos tu idea para cotizar.
-    3. **Mide:** Elige pulgadas o centímetros (el sistema convierte solo).
-    4. **Cotiza:** El algoritmo calcula el tiempo y costo exacto.
-    5. **Reserva:** Bloquea tu fecha en el calendario.
-    """)
-
-# --- 2. EL AVATAR: STEPHANIE ---
-st.info("👋 **Stephanie:** Hola. Soy la coordinadora de Adrenaline. Introduce tus datos abajo para generar tu presupuesto y reservar.")
-
-# --- 3. FORMULARIO DE ENTRADA ---
-col_foto, col_desc = st.columns([1, 2])
-
-with col_foto:
-    foto_referencia = st.file_uploader("Sube referencia (Opcional)", type=['jpg', 'png', 'jpeg'])
-
-with col_desc:
-    descripcion = st.text_area("Descripción de tu pieza:", placeholder="Ej: Cráneo con rosas neotradicionales...")
-
-# Selección de unidad y medida
-col_unidad, col_medida = st.columns(2)
-with col_unidad:
-    unidad = st.radio("Unidad de medida:", ["Pulgadas", "Centímetros"], horizontal=True)
-
-with col_medida:
-    if unidad == "Pulgadas":
-        medida = st.number_input("Tamaño (Pulgadas)", min_value=1, value=5)
-        pulgadas_reales = medida
-    else:
-        medida = st.number_input("Tamaño (Centímetros)", min_value=2, value=12)
-        pulgadas_reales = medida / 2.54 # Conversión interna
-
-# Lista de estilos base (Pilares)
-estilo = st.selectbox("Estilo técnico:", ["Lettering Sencillo", "Neotradicional", "Neotribal", "Blackwork", "Realismo"])
-
-# --- 4. ALGORITMO DE CÁLCULO (LÓGICA INTERNA) ---
-factores_estilo = {
-    "Lettering Sencillo": 0.4,
-    "Neotradicional": 1.2,
-    "Neotribal": 1.0,
-    "Blackwork": 1.1,
-    "Realismo": 1.8
-}
-
-factor = factores_estilo.get(estilo, 1.0)
-horas_estimadas = round(pulgadas_reales * factor, 1)
-
-# Variables de precio
-precio_insumos = 50 
-precio_por_hora = 100 
-precio_final = (horas_estimadas * precio_por_hora) + precio_insumos
-
-# --- 5. CALENDARIO ---
-st.subheader("📅 Disponibilidad")
-fecha_cita = st.date_input("Selecciona tu día", min_value=date.today())
-
-# --- 6. EQUIPO DE ARTISTAS ---
-st.divider()
-st.subheader("🩸 Artistas Residentes")
-artistas = ["Momo", "Steve", "Sonia", "Víctor"]
-st.write(f"Especialistas disponibles: **{', '.join(artistas)}**")
-
-# Recomendación inteligente
-st.success(f"⚡ Para un trabajo **{estilo}**, cualquiera de nuestros artistas ({', '.join(artistas)}) está cualificado.")
-
-# --- 7. RESUMEN Y ACCIÓN ---
-if st.button("CALCULAR Y CONFIRMAR"):
-    st.markdown("---")
-    st.header("💀 Resumen del Proyecto")
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS | Sistema de Microanálisis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
-    col_res1, col_res2 = st.columns(2)
-    with col_res1:
-        if foto_referencia:
-            st.image(foto_referencia, width=150)
-        st.write(f"**Idea:** {descripcion}")
-        st.write(f"**Estilo:** {estilo}")
-        st.write(f"**Tamaño:** {medida} {unidad}")
-        st.write(f"**Fecha:** {fecha_cita}")
-    
-    with col_res2:
-        st.metric(label="Tiempo de Sesión", value=f"{horas_estimadas} Horas")
-        st.write(f"**Insumos estériles:** ${precio_insumos}")
-        st.metric(label="Total Estimado", value=f"${precio_final:.2f}")
-    
-    st.info("📧 **Stephanie:** Datos recibidos. Te enviaremos la confirmación oficial al correo.")
+    <style>
+        /* ESTÉTICA OASIS - CURADURÍA VISUAL */
+        :root {
+            --oasis-bg: #ffffff;
+            --oasis-ink: #0a0a0a;
+            --oasis-gold: #d4af37;
+            --oasis-soft: #f9f9f9;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--oasis-bg); font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+
+        .background-aura {
+            position: absolute; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f4f4 100%);
+            z-index: -1;
+        }
+
+        .main-title { text-align: center; z-index: 1; }
+        .main-title h1 {
+            font-family: 'Playfair Display', serif; font-size: 3.5rem; 
+            font-weight: 200; font-style: italic; margin: 0;
+        }
+        .main-title p { letter-spacing: 5px; text-transform: uppercase; color: #999; font-size: 0.7rem; }
+
+        /* INTERFAZ DE CHAT REVOLUCIONADA */
+        #oasis-launcher {
+            position: fixed; bottom: 40px; right: 40px;
+            width: 75px; height: 75px; border-radius: 50%;
+            background: var(--oasis-ink); color: white; border: none;
+            cursor: pointer; font-size: 30px; z-index: 1000;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        #oasis-launcher:hover { transform: scale(1.1) rotate(90deg); }
+
+        #oasis-window {
+            position: fixed; bottom: 130px; right: 40px;
+            width: 420px; height: 650px; background: white;
+            border-radius: 35px; display: none; flex-direction: column;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.18);
+            border: 1px solid rgba(0,0,0,0.04); overflow: hidden; z-index: 1000;
+        }
+
+        #oasis-header {
+            padding: 35px; background: var(--oasis-ink); color: white;
+            text-align: center; font-size: 0.8rem; letter-spacing: 4px;
+        }
+
+        #oasis-feed {
+            flex: 1; padding: 30px; overflow-y: auto; background: var(--oasis-soft);
+            display: flex; flex-direction: column; gap: 25px;
+        }
+
+        .bubble {
+            max-width: 85%; padding: 18px 22px; border-radius: 22px;
+            font-size: 14px; line-height: 1.6; animation: fadeIn 0.6s ease;
+        }
+
+        .bot { background: white; border: 1px solid #eee; color: #222; align-self: flex-start; }
+        .log { font-style: italic; color: #aaa; font-size: 11px; text-align: center; width: 100%; }
+
+        #oasis-footer { padding: 30px; background: white; display: flex; flex-direction: column; gap: 15px; }
+
+        .btn-action {
+            width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #eee;
+            background: white; cursor: pointer; font-weight: 600; font-size: 12px;
+            letter-spacing: 1px; transition: 0.3s; text-transform: uppercase;
+        }
+
+        .btn-action.primary { background: var(--oasis-ink); color: white; border: none; }
+        .btn-action:hover { background: #f0f0f0; transform: translateY(-2px); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="background-aura"></div>
+    <div class="main-title">
+        <h1>Oasis</h1>
+        <p>Microanálisis & Curaduría</p>
+    </div>
+
+    <div id="oasis-chat-container">
+        <button id="oasis-launcher" onclick="toggleOasis()">✧</button>
+        
+        <div id="oasis-window">
+            <div id="oasis-header">SISTEMA DE PRECISIÓN</div>
+            <div id="oasis-feed">
+                <div class="bubble bot">
+                    Hola. Si tienes una <strong>IMAGEN</strong>, puedes calcular tu presupuesto. El sistema determinará automáticamente el estilo y la complejidad de tu diseño.
+                </div>
+            </div>
+            <div id="oasis-footer">
+                <input type="file" id="imageInput" hidden accept="image/*" onchange="runCerebro(event)">
+                <button class="btn-action primary" onclick="document.getElementById('imageInput').click()">📸 SUBIR DISEÑO</button>
+                <button class="btn-action">💬 CONSULTA TÉCNICA</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MOTOR DE GALERÍAS Y CEREBROS ---
+        const GALERIAS = {
+            "FINE_LINE": { base: 15, modo: "pulgada", ocupacion: "ALTA" },
+            "LETTERING": { base: 12, modo: "pulgada", ocupacion: "ALTA" },
+            "REALISMO_BG": { base: 150, modo: "sesion", ocupacion: "ALTA" },
+            "TRADICIONAL": { base: 100, modo: "fijo", ocupacion: "ALTA" },
+            "NEOTRADICIONAL": { base: 130, modo: "sesion", ocupacion: "ALTA" },
+            "REALISMO_COLOR": { base: 180, modo: "sesion", ocupacion: "MEDIA" },
+            "BLACKWORK": { base: 120, modo: "complejidad", ocupacion: "MEDIA" },
+            "JAPONES": { base: 160, modo: "sesion", ocupacion: "MEDIA" },
+            "BIOMECANICO": { base: 180, modo: "sesion", ocupacion: "BAJA" },
+            "TRASH_POLKA": { base: 140, modo: "fijo", ocupacion: "BAJA" }
+        };
+
+        function toggleOasis() {
+            const win = document.getElementById('oasis-window');
+            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function addMessage(text, type = 'bot') {
+            const feed = document.getElementById('oasis-feed');
+            const msg = document.createElement('div');
+            msg.className = `bubble ${type}`;
+            msg.innerHTML = text;
+            feed.appendChild(msg);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function runCerebro(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            // 1. EL SUPERVISOR ACTÚA
+            addMessage("<em>SUPERVISOR: Limpiando ruido y validando microanálisis visual...</em>", "log");
+
+            setTimeout(() => {
+                // 2. EL DIRECTOR Y ANALISTA (Simulación de detección)
+                const estilo = "FINE_LINE"; // Simulado
+                const complejidad = "ALTA"; // Simulado
+                const color = false;
+
+                addMessage(`<strong>DIRECTOR:</strong> Detectado estilo ${estilo}.<br><strong>ANALISTA:</strong> Complejidad ${complejidad} confirmada.`);
+
+                // 3. EL OBRERO DE COLOR Y ANALISTA FINANCIERO
+                setTimeout(() => {
+                    const data = GALERIAS[estilo];
+                    let total = data.base;
+                    if(complejidad === "ALTA") total *= 1.30;
+                    if(color) total *= 1.20;
+
+                    addMessage(`<strong>ANÁLISIS FINAL:</strong><br>Categoría de ocupación ${data.ocupacion}.<br>Cálculo basado en ${data.modo}: <strong>$${total.toFixed(2)}</strong>.`, "bot");
+                    
+                    const btn = document.createElement('button');
+                    btn.className = "btn-action primary";
+                    btn.style.marginTop = "15px";
+                    btn.innerText = "📅 AGENDAR EN OASIS";
+                    btn.onclick = () => window.open('https://wa.me/Oasis-writer', '_blank');
+                    document.getElementById('oasis-feed').appendChild(btn);
+                }, 1500);
+
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
